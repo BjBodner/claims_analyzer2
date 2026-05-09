@@ -149,6 +149,18 @@ with tab1:
                 status_text.text("✨ Download Sequence Complete!")
                 st.success(f"Successfully archived {len(selected_ids)} documents to `claims/{pct_code}/`")
 
+        st.markdown("---")
+        st.subheader("➕ Manual Data Injection")
+        with st.expander("Manually add claims document"):
+            custom_name = st.text_input("Filename (e.g., MyCustomDraft)", key="custom_name")
+            custom_text = st.text_area("Claims Content (Markdown/Text)", height=300, key="custom_text")
+            if st.button("💾 SAVE TO ARCHIVE"):
+                if custom_name and custom_text:
+                    write_claims_file(pct_code, custom_name, custom_text)
+                    st.success(f"Archived `{custom_name}.md` successfully.")
+                else:
+                    st.error("Both filename and content are required.")
+
 with tab2:
     st.info("📊 Data required. Scan and download family members in the Fetch tab first.")
 
