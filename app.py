@@ -80,10 +80,29 @@ st.markdown("""
         color: var(--primary);
         font-weight: 600;
         letter-spacing: -1px;
+        text-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
     }
     
     hr {
         border-color: var(--glass-border);
+    }
+
+    /* Fade-in Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stApp {
+        animation: fadeIn 0.8s ease-out;
+    }
+
+    /* Custom Info Box */
+    .stAlert {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--glass-border) !important;
+        color: #E0E0E0 !important;
+        border-radius: 12px !important;
     }
 </style>
 """, unsafe_allow_html=True)
