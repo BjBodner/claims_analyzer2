@@ -1,1 +1,33 @@
+# Worktrees (local only)
 .worktrees/
+
+# Secret keys — NEVER commit these
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Downloads / generated content
+downloads/
+claims/
+
+# macOS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
