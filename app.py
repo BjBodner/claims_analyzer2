@@ -94,8 +94,60 @@ st.markdown("---")
 tab1, tab2, tab3 = st.tabs(["🔍 Fetch & Download", "📊 Compare", "🤖 AI Analysis"])
 
 with tab1:
-    st.subheader("📡 System Initialization")
-    st.info("Awaiting mission parameters. Please enter a PCT or Publication number to scan.")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        pct_input = st.text_input("Enter PCT / Publication Number", placeholder="e.g. WO2020227475A1")
+    with col2:
+        st.write("##")
+        search_btn = st.button("🚀 SCAN FAMILY")
+
+    if search_btn and pct_input:
+        with st.status("📡 Connecting to EPO OPS API...", expanded=True) as status:
+            try:
+                members = get_family_members(pct_input.strip())
+                st.session_state["members"] = members
+                st.session_state["pct_code"] = pct_input.strip()
+                status.update(label=f"✅ Scan Complete: {len(members)} members identified.", state="complete")
+            except Exception as e:
+                st.error(f"⚠️ Scan Interrupted: {str(e)}")
+
+    if "members" in st.session_state:
+        members = st.session_state["members"]
+        pct_code = st.session_state["pct_code"]
+        
+        st.markdown(f"### 📋 Family Members for `{pct_code}`")
+        
+        # Selection logic
+        col_sel, col_act = st.columns([1, 1])
+        with col_sel:
+            select_all = st.checkbox("Select All Members", value=True)
+        
+        selected_ids = []
+        for m in members:
+            is_selected = st.checkbox(
+                f"**{m['doc_id']}** ({m['country']})", 
+                value=select_all, 
+                key=f"sel_{m['doc_id']}"
+            )
+            if is_selected:
+                selected_ids.append(m['doc_id'])
+                
+        if st.button("⏬ DOWNLOAD SELECTED CLAIMS"):
+            if not selected_ids:
+                st.warning("No members selected for download.")
+            else:
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                for i, doc_id in enumerate(selected_ids):
+                    status_text.text(f"Downloading {doc_id}...")
+                    claims = get_claims(doc_id)
+                    content = f"# Claims: {doc_id}\n\n{claims if claims else '_[NO CLAIMS FOUND]_'}"
+                    write_claims_file(pct_code, doc_id, content)
+                    progress_bar.progress((i + 1) / len(selected_ids))
+                
+                status_text.text("✨ Download Sequence Complete!")
+                st.success(f"Successfully archived {len(selected_ids)} documents to `claims/{pct_code}/`")
 
 with tab2:
     st.info("📊 Data required. Scan and download family members in the Fetch tab first.")
