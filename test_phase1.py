@@ -4,7 +4,7 @@ from epo_client import get_family_members, get_claims
 from file_manager import write_claims_file, list_claims_files
 
 def validate_phase1():
-    PCT = "WO2020227475A1"
+    PCT = "US12145846B2"
     
     print(f"🚀 Starting Phase 1 Validation for: {PCT}")
     
