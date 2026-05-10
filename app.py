@@ -1,7 +1,8 @@
 import streamlit as st
 import os
 from epo_client import get_family_members, get_claims
-from file_manager import write_claims_file, list_claims_files
+from file_manager import write_claims_file, list_claims_files, read_claims_file
+from diff_engine import compute_diff, render_diff_html
 
 st.set_page_config(
     page_title="Patent Claims Analyzer | Mission Control",
@@ -181,7 +182,47 @@ with tab1:
                     st.error("Both filename and content are required.")
 
 with tab2:
-    st.info("📊 Data required. Scan and download family members in the Fetch tab first.")
+    if "pct_code" in st.session_state:
+        pct_code = st.session_state["pct_code"]
+        files = list_claims_files(pct_code)
+        
+        if len(files) < 1:
+            st.info("📊 No documents found in archive. Please download family members in the Fetch tab first.")
+        else:
+            st.markdown(f"### 📊 Comparative Analysis: `{pct_code}`")
+            
+            col_a, col_b = st.columns(2)
+            with col_a:
+                file_a = st.selectbox("Base Document (Version A)", files, index=0, key="file_a")
+            with col_b:
+                default_index = 1 if len(files) > 1 else 0
+                file_b = st.selectbox("Target Document (Version B)", files, index=default_index, key="file_b")
+
+            col_mode, col_space = st.columns([1, 2])
+            with col_mode:
+                diff_mode = st.radio("Display Mode", ["Split View", "Unified View"], horizontal=True)
+            
+            if st.button("🔍 EXECUTE COMPARISON", use_container_width=True):
+                text_a = read_claims_file(pct_code, file_a)
+                text_b = read_claims_file(pct_code, file_b)
+                
+                diff_data = compute_diff(text_a, text_b)
+                
+                st.markdown("---")
+                if diff_mode == "Split View":
+                    left_html, right_html = render_diff_html(diff_data, mode="split")
+                    col_left, col_right = st.columns(2)
+                    with col_left:
+                        st.markdown(f"**{file_a}**")
+                        st.components.v1.html(left_html, height=600, scrolling=True)
+                    with col_right:
+                        st.markdown(f"**{file_b}**")
+                        st.components.v1.html(right_html, height=600, scrolling=True)
+                else:
+                    unified_html = render_diff_html(diff_data, mode="unified")
+                    st.components.v1.html(unified_html, height=800, scrolling=True)
+    else:
+        st.info("📊 Data required. Scan and download family members in the Fetch tab first.")
 
 with tab3:
     st.info("🤖 AI Core offline. Complete data archival and comparison to initialize analysis.")
